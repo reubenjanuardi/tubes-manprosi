@@ -26,7 +26,7 @@
                     <li class="nav__item"><a href="#home" class="nav__link">Beranda</a></li>
                     <li class="nav__item"><a href="#about" class="nav__link">Tentang</a></li>
                     <li class="nav__item"><a href="#services" class="nav__link">Layanan</a></li>
-                    <li class="nav__item"><a href="#assessment" class="nav__link">Assessment</a></li>
+                    <li class="nav__item"><a href="#welcome-section" class="nav__link">Assessment</a></li>
                     <li class="nav__item"><a href="#methodology" class="nav__link">Metodologi</a></li>
                     <li class="nav__item"><a href="#contact" class="nav__link">Kontak</a></li>
                 </ul>
@@ -69,7 +69,7 @@
                     </div>
                 </div>
                 <div class="hero__actions">
-                    <a href="#assessment" class="btn btn--primary">Mulai Assessment</a>
+                    <a href="#welcome-section" class="btn btn--primary">Mulai Assessment</a>
                     <a href="#contact" class="btn btn--outline">Konsultasi Gratis</a>
                 </div>
             </div>
@@ -368,7 +368,7 @@
     </section>
 
     <!-- Assessment Section -->
-    <section id="welcome-section" class="welcome-section">
+    <section id="welcome-section" class="welcome-section" data-section="assessment">
         <button class="btn btn--primary btn--lg" onclick="startAssessment()">
             Mulai Assessment Digital Government
         </button>
@@ -491,7 +491,7 @@
                 <button id="next-btn" class="btn btn--primary" onclick="navigateAssessment('next')">
                     Selanjutnya →
                 </button>
-                <button id="submit-btn" class="btn btn--primary btn--lg section--hidden" onclick="submitAssessment()">
+                <button id="submit-btn" type="button" class="btn btn--primary btn--lg section--hidden" onclick="submitAssessment(); return false;">
                     Selesaikan Assessment
                 </button>
             </div>

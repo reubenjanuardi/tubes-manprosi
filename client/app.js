@@ -139,6 +139,10 @@ let appState = {
   results: null
 };
 
+// Chart instances for cleanup
+let radarChartInstance = null;
+let domainChartInstance = null;
+
 // Initialize Application
 document.addEventListener('DOMContentLoaded', function() {
   initializeApp();
@@ -263,16 +267,32 @@ function submitContactForm() {
  * 
  * Mengirim POST ke: /api/assessment
  */
-async function submitAssessment() {
+async function submitAssessment(e) {
+  // Prevent any default submission behavior
+  if (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+  
+  console.log('========================================');
+  console.log('=== SUBMIT ASSESSMENT STARTED ===');
+  console.log('========================================');
+  
   // Validasi semua indikator sudah dinilai
   const incompleteIndicators = Object.entries(appState.assessmentResponses)
     .filter(([id, response]) => !response.completed)
     .map(([id]) => parseInt(id));
   
+  console.log('Total responses:', Object.keys(appState.assessmentResponses).length);
+  console.log('Incomplete indicators:', incompleteIndicators.length);
+  
   if (incompleteIndicators.length > 0) {
+    console.warn('Validation failed - incomplete indicators:', incompleteIndicators);
     alert(`Masih ada ${incompleteIndicators.length} indikator yang belum dinilai. Silakan lengkapi terlebih dahulu.`);
-    return;
+    return false;
   }
+  
+  console.log('✓ Validation passed - all indicators completed');
   
   // Create FormData object untuk multipart/form-data
   const formData = new FormData();
@@ -321,6 +341,8 @@ async function submitAssessment() {
     submitButton.disabled = true;
   }
   
+  console.log('Sending request to:', `${API_BASE_URL}/assessment`);
+  
   try {
     // Send POST request dengan FormData
     const response = await fetch(`${API_BASE_URL}/assessment`, {
@@ -332,6 +354,8 @@ async function submitAssessment() {
       // NOTE: Jangan set 'Content-Type' header - browser akan set otomatis dengan boundary
     });
     
+    console.log('Response received:', response.status, response.statusText);
+    
     // Check if response is JSON
     const contentType = response.headers.get('content-type');
     if (!contentType || !contentType.includes('application/json')) {
@@ -342,26 +366,59 @@ async function submitAssessment() {
     }
     
     const result = await response.json();
+    console.log('Response data:', result);
     
     if (response.ok && result.success) {
+      console.log('✓ Assessment submission successful!');
+      
       // Success - simpan assessment ID untuk export
       const assessmentId = result.assessment_id;
       const totalScore = result.total_score;
       const maturityLevel = result.maturity_level;
+      
+      console.log('Assessment ID:', assessmentId);
+      console.log('Total Score:', totalScore);
+      console.log('Maturity Level:', maturityLevel);
       
       // Store assessment ID untuk digunakan di hasil
       appState.completedAssessmentId = assessmentId;
       appState.submittedTotalScore = totalScore;
       appState.submittedMaturityLevel = maturityLevel;
       
-      // Tampilkan hasil assessment
-      calculateResults();
-      showSection('results-section');
-      
-      // Tampilkan tombol download PDF dan Excel
-      displayExportButtons(assessmentId);
-      
-      console.log('Assessment submitted successfully! ID:', assessmentId);
+      try {
+        // Tampilkan hasil assessment
+        console.log('[STEP 1] Calculating results...');
+        calculateResults();
+        
+        console.log('[STEP 2] Showing results section...');
+        showSection('results-section');
+        
+        // Wait for section to be visible, then scroll
+        setTimeout(() => {
+          const resultsSection = document.getElementById('results-section');
+          if (resultsSection) {
+            console.log('[STEP 3] Scrolling to results section...');
+            resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            // Also scroll window to top as backup
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          } else {
+            console.error('Results section not found!');
+          }
+        }, 300);
+        
+        // Tampilkan tombol download PDF dan Excel
+        setTimeout(() => {
+          console.log('[STEP 4] Displaying export buttons...');
+          displayExportButtons(assessmentId);
+        }, 500);
+        
+        console.log('✓ Assessment flow completed successfully!');
+      } catch (displayError) {
+        console.error('❌ ERROR displaying results:', displayError);
+        console.error('Stack trace:', displayError.stack);
+        console.error('At:', displayError.filename, ':', displayError.lineno);
+        alert('Assessment berhasil disimpan, tapi terjadi error saat menampilkan hasil. ID: ' + assessmentId);
+      }
     } else {
       // Error response from API
       const errorMsg = result.message || 'Unknown error';
@@ -370,15 +427,24 @@ async function submitAssessment() {
       console.error('Server error:', result);
     }
   } catch (error) {
-    console.error('Error submitting assessment:', error);
-    alert(`Terjadi kesalahan saat mengirim assessment: ${error.message}`);
+    console.error('❌ NETWORK/FETCH ERROR:', error);
+    console.error('Error type:', error.name);
+    console.error('Error message:', error.message);
+    console.error('Stack trace:', error.stack);
+    alert(`Error mengirim assessment: ${error.message}`);
   } finally {
     if (submitButton) {
-      submitButton.textContent = 'Kirim Assessment';
+      submitButton.textContent = 'Selesaikan Assessment';
       submitButton.disabled = false;
     }
+    console.log('========================================');
+    console.log('=== SUBMIT ASSESSMENT ENDED ===');
+    console.log('========================================');
   }
+  
+  return false;
 }
+
 
 
 /**
@@ -636,30 +702,33 @@ function setupEventListeners() {
 
 // Navigation Functions
 function showSection(sectionId) {
-  // Hide all sections
-  document.querySelectorAll('.section').forEach(section => {
-    section.classList.add('section--hidden');
+  console.log('=== showSection called:', sectionId, '===');
+  
+  // Hide all sections first
+  const allSections = ['welcome-section', 'org-info-section', 'assessment-section', 'results-section'];
+  allSections.forEach(id => {
+    const section = document.getElementById(id);
+    if (section) {
+      section.classList.add('section--hidden');
+      section.style.display = 'none';
+      console.log('  Hiding:', id);
+    }
   });
   
-  // Also hide welcome section
-  const welcomeSection = document.getElementById('welcome-section');
-  if (welcomeSection) {
-    welcomeSection.style.display = 'none';
-  }
-  
-  // Show target section
+  // Show target section with forced visibility
   const targetSection = document.getElementById(sectionId);
   if (targetSection) {
     targetSection.classList.remove('section--hidden');
     targetSection.style.display = 'block';
-  }
-  
-  // Special handling for welcome section
-  if (sectionId === 'welcome-section' && welcomeSection) {
-    welcomeSection.style.display = 'block';
+    targetSection.style.visibility = 'visible';
+    targetSection.style.opacity = '1';
+    console.log('  ✓ Showing:', sectionId, '- Classes:', targetSection.className, '- Display:', targetSection.style.display);
+  } else {
+    console.error('  ✗ ERROR: Section not found:', sectionId);
   }
   
   appState.currentSection = sectionId;
+  console.log('  Current section:', appState.currentSection);
 }
 
 function selectAssessmentType(type) {
@@ -730,6 +799,14 @@ function handleOrgFormSubmit(e) {
   // Initialize assessment
   initializeAssessment();
   showSection('assessment-section');
+  
+  // Scroll to top of assessment section
+  setTimeout(() => {
+    const assessmentSection = document.getElementById('assessment-section');
+    if (assessmentSection) {
+      assessmentSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, 100);
 }
 
 function initializeAssessment() {
@@ -786,6 +863,12 @@ function switchToDomain(domainId) {
   
   renderCurrentAssessment();
   updateProgress();
+  
+  // Scroll to top of assessment section
+  const assessmentSection = document.getElementById('assessment-section');
+  if (assessmentSection) {
+    assessmentSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 }
 
 function renderCurrentAssessment() {
@@ -912,6 +995,8 @@ function navigateAssessment(direction) {
   } else if (direction === 'next' && appState.currentDomain < assessmentData.domains.length) {
     switchToDomain(appState.currentDomain + 1);
   }
+  
+  // Scroll handled by switchToDomain function
 }
 
 function saveProgress() {
@@ -935,61 +1020,88 @@ function showDashboard() {
 // Now handles API submission with FormData and calls displayExportButtons() after success
 
 function calculateResults() {
-  // Calculate domain scores
-  const domainScores = {};
-  let overallScore = 0;
-  
-  assessmentData.domains.forEach(domain => {
-    const domainIndicators = getDomainIndicators(domain.id);
-    const domainTotal = domainIndicators.reduce((sum, indicator) => {
-      const response = appState.assessmentResponses[indicator.id];
-      return sum + (response?.score || 0);
-    }, 0);
+  try {
+    console.log('=== START calculateResults ===');
+    console.log('appState.assessmentResponses:', appState.assessmentResponses);
     
-    const domainAverage = domainTotal / domainIndicators.length;
-    domainScores[domain.id] = {
-      score: domainAverage,
-      weightedScore: (domainAverage * domain.weight) / 100
+    // Calculate domain scores
+    const domainScores = {};
+    let overallScore = 0;
+    
+    assessmentData.domains.forEach(domain => {
+      const domainIndicators = getDomainIndicators(domain.id);
+      console.log(`Domain ${domain.id} (${domain.name}):`, domainIndicators.length, 'indicators');
+      
+      const domainTotal = domainIndicators.reduce((sum, indicator) => {
+        const response = appState.assessmentResponses[indicator.id];
+        return sum + (response?.score || 0);
+      }, 0);
+      
+      const domainAverage = domainTotal / domainIndicators.length;
+      domainScores[domain.id] = {
+        score: domainAverage,
+        weightedScore: (domainAverage * domain.weight) / 100
+      };
+      
+      overallScore += domainScores[domain.id].weightedScore;
+      console.log(`  Average: ${domainAverage}, Weighted: ${domainScores[domain.id].weightedScore}`);
+    });
+    
+    console.log('Overall Score:', overallScore);
+    
+    // Store results
+    appState.results = {
+      overallScore: overallScore,
+      domainScores: domainScores,
+      completedIndicators: Object.values(appState.assessmentResponses).filter(r => r.completed).length,
+      assessmentDate: new Date().toLocaleDateString('id-ID')
     };
     
-    overallScore += domainScores[domain.id].weightedScore;
-  });
-  
-  // Store results
-  appState.results = {
-    overallScore: overallScore,
-    domainScores: domainScores,
-    completedIndicators: Object.values(appState.assessmentResponses).filter(r => r.completed).length,
-    assessmentDate: new Date().toLocaleDateString('id-ID')
-  };
-  
-  renderResults();
+    console.log('Final results stored:', appState.results);
+    
+    renderResults();
+    console.log('=== END calculateResults ===');
+  } catch (error) {
+    console.error('❌ ERROR in calculateResults:', error);
+    console.error('Stack trace:', error.stack);
+    alert('Error calculating results: ' + error.message);
+    throw error; // Re-throw to be caught by parent try-catch
+  }
 }
 
 function renderResults() {
-  const results = appState.results;
-  
-  // Update summary
-  const overallScoreEl = document.getElementById('overall-score');
-  const completedIndicatorsEl = document.getElementById('completed-indicators');
-  const assessmentDateEl = document.getElementById('assessment-date');
-  
-  if (overallScoreEl) overallScoreEl.textContent = results.overallScore.toFixed(1);
-  if (completedIndicatorsEl) completedIndicatorsEl.textContent = results.completedIndicators;
-  if (assessmentDateEl) assessmentDateEl.textContent = results.assessmentDate;
-  
-  // Update maturity level
-  const overallLevel = getMaturityLevel(results.overallScore);
-  const levelElement = document.getElementById('overall-level');
-  if (levelElement) {
-    levelElement.textContent = overallLevel.name;
-    levelElement.className = `summary-level status--level-${overallLevel.level}`;
+  try {
+    const results = appState.results;
+    console.log('Rendering results:', results);
+    
+    // Update summary
+    const overallScoreEl = document.getElementById('overall-score');
+    const completedIndicatorsEl = document.getElementById('completed-indicators');
+    const assessmentDateEl = document.getElementById('assessment-date');
+    
+    if (overallScoreEl) overallScoreEl.textContent = results.overallScore.toFixed(1);
+    if (completedIndicatorsEl) completedIndicatorsEl.textContent = results.completedIndicators;
+    if (assessmentDateEl) assessmentDateEl.textContent = results.assessmentDate;
+    
+    // Update maturity level
+    const overallLevel = getMaturityLevel(results.overallScore);
+    const levelElement = document.getElementById('overall-level');
+    if (levelElement) {
+      levelElement.textContent = overallLevel.name;
+      levelElement.className = `summary-level status--level-${overallLevel.level}`;
+    }
+    
+    // Create charts
+    console.log('Creating charts...');
+    createRadarChart();
+    createDomainChart();
+    renderDomainDetails();
+    
+    console.log('Results rendered successfully');
+  } catch (error) {
+    console.error('Error rendering results:', error);
+    alert('Error menampilkan hasil: ' + error.message);
   }
-  
-  // Create charts
-  createRadarChart();
-  createDomainChart();
-  renderDomainDetails();
 }
 
 function getMaturityLevel(score) {
@@ -1001,54 +1113,88 @@ function getMaturityLevel(score) {
 }
 
 function createRadarChart() {
+  console.log('=== createRadarChart ===');
+  
+  // Check if Chart.js is loaded
+  if (typeof Chart === 'undefined') {
+    console.error('Chart.js not loaded!');
+    return;
+  }
+  
   const canvas = document.getElementById('radar-chart');
-  if (!canvas) return;
+  if (!canvas) {
+    console.error('Radar chart canvas not found');
+    return;
+  }
+  
+  console.log('Canvas found, creating chart...');
+  
+  // Destroy existing chart
+  if (radarChartInstance) {
+    radarChartInstance.destroy();
+  }
   
   const ctx = canvas.getContext('2d');
   
   const domainLabels = assessmentData.domains.map(d => d.name);
   const domainData = assessmentData.domains.map(d => appState.results.domainScores[d.id].score);
   
-  new Chart(ctx, {
-    type: 'radar',
-    data: {
-      labels: domainLabels,
-      datasets: [{
-        label: 'Tingkat Kematangan',
-        data: domainData,
-        backgroundColor: 'rgba(59, 130, 246, 0.2)',
-        borderColor: '#3b82f6',
-        borderWidth: 2,
-        pointBackgroundColor: '#3b82f6',
-        pointBorderColor: '#fff',
-        pointHoverBackgroundColor: '#fff',
-        pointHoverBorderColor: '#3b82f6'
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        r: {
-          beginAtZero: true,
-          max: 5,
-          ticks: {
-            stepSize: 1
+  console.log('Domain labels:', domainLabels);
+  console.log('Domain data:', domainData);
+  
+  try {
+    radarChartInstance = new Chart(ctx, {
+      type: 'radar',
+      data: {
+        labels: domainLabels,
+        datasets: [{
+          label: 'Tingkat Kematangan',
+          data: domainData,
+          backgroundColor: 'rgba(59, 130, 246, 0.2)',
+          borderColor: '#3b82f6',
+          borderWidth: 2,
+          pointBackgroundColor: '#3b82f6',
+          pointBorderColor: '#fff',
+          pointHoverBackgroundColor: '#fff',
+          pointHoverBorderColor: '#3b82f6'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          r: {
+            beginAtZero: true,
+            max: 5,
+            ticks: {
+              stepSize: 1
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            display: false
           }
         }
-      },
-      plugins: {
-        legend: {
-          display: false
-        }
       }
-    }
-  });
+    });
+    console.log('Radar chart created successfully');
+  } catch (error) {
+    console.error('Error creating radar chart:', error);
+  }
 }
 
 function createDomainChart() {
   const canvas = document.getElementById('domain-chart');
-  if (!canvas) return;
+  if (!canvas) {
+    console.error('Domain chart canvas not found');
+    return;
+  }
+  
+  // Destroy existing chart
+  if (domainChartInstance) {
+    domainChartInstance.destroy();
+  }
   
   const ctx = canvas.getContext('2d');
   
@@ -1056,7 +1202,7 @@ function createDomainChart() {
   const domainScores = assessmentData.domains.map(d => appState.results.domainScores[d.id].score);
   const colors = ['#1FB8CD', '#FFC185', '#B4413C', '#ECEBD5'];
   
-  new Chart(ctx, {
+  domainChartInstance = new Chart(ctx, {
     type: 'bar',
     data: {
       labels: domainLabels,

@@ -698,6 +698,11 @@ html {
   font-family: 'Inter', var(--font-family-base);
 }
 
+/* Add scroll margin to sections for fixed header */
+section[id] {
+  scroll-margin-top: 80px;
+}
+
 body {
   background: var(--color-background);
   color: var(--color-text);
@@ -1543,6 +1548,19 @@ section {
     display: none !important;
 }
 
+/* Ensure sections have proper padding and visibility when shown */
+#org-info-section,
+#assessment-section,
+#results-section {
+    min-height: 100vh;
+    padding: 120px 0 80px 0; /* Top padding to account for fixed header */
+    width: 100%;
+}
+
+#results-section {
+    background: var(--color-background);
+}
+
 /* Scoped styles copied/adapted from view2/style.css
    Only affect: #welcome-section, #org-info-section, #assessment-section, #results-section
 */
@@ -1607,10 +1625,6 @@ section {
 }
 
 /* Organization info form (scoped) */
-#org-info-section {
-  /* inherits .section spacing from global, keep scoped form styling */
-}
-
 #org-info-section .org-form {
   max-width: 800px;
   margin: 0 auto;
