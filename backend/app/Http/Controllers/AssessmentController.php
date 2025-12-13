@@ -187,7 +187,7 @@ class AssessmentController extends Controller
     }
 
     /**
-     * Export assessment as Excel
+     * Export assessment as Excel (CSV format)
      */
     public function exportExcel(string $id)
     {
@@ -196,17 +196,33 @@ class AssessmentController extends Controller
 
             // Create Excel export object
             $export = new \App\Exports\AssessmentExport($assessment);
-            $data = $export->getExcelData();
-
-            // Generate Excel using a simple approach with PHPExcel
-            $filename = "Assessment_{$assessment->org_name}_{$assessment->id}.xlsx";
-
-            // Return data as JSON for frontend to handle
-            return response()->json([
-                'success' => true,
-                'data' => $data,
-                'filename' => $filename,
-            ]);
+            $data = $export->toArray();
+            
+            // Generate filename
+            $filename = "Assessment_Summary_{$assessment->id}.csv";
+            
+            // Set headers for CSV download
+            $headers = [
+                'Content-Type' => 'text/csv; charset=UTF-8',
+                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                'Cache-Control' => 'max-age=0',
+            ];
+            
+            // Create CSV response
+            $callback = function() use ($data) {
+                $file = fopen('php://output', 'w');
+                
+                // Add BOM for Excel UTF-8 support
+                fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+                
+                foreach ($data as $row) {
+                    fputcsv($file, $row);
+                }
+                
+                fclose($file);
+            };
+            
+            return response()->stream($callback, 200, $headers);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
