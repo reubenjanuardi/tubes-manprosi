@@ -15,9 +15,9 @@ class AssessmentExport
     }
 
     /**
-     * Get data for export as array
+     * Get data for Excel export as array
      */
-    public function getExcelData()
+    public function toArray()
     {
         $data = [];
 

@@ -398,9 +398,15 @@ async function submitAssessment(e) {
           const resultsSection = document.getElementById('results-section');
           if (resultsSection) {
             console.log('[STEP 3] Scrolling to results section...');
-            resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            // Also scroll window to top as backup
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            // Scroll to results section with offset for header
+            const headerHeight = document.querySelector('.header')?.offsetHeight || 80;
+            const elementPosition = resultsSection.getBoundingClientRect().top + window.pageYOffset;
+            const offsetPosition = elementPosition - headerHeight;
+            
+            window.scrollTo({
+              top: offsetPosition,
+              behavior: 'smooth'
+            });
           } else {
             console.error('Results section not found!');
           }
