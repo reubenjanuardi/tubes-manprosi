@@ -212,19 +212,10 @@ function submitContactForm() {
     submitButton.disabled = true;
     
     try {
-      // Send POST request to backend
-      const response = await fetch(`${API_BASE_URL}/contact`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify(data)
-      });
+      // Send POST request using ApiClient
+      const result = await ApiClient.post('/contact', data);
       
-      const result = await response.json();
-      
-      if (response.ok && result.success) {
+      if (result.success) {
         // Success - show confirmation
         alert('✓ Pesan Anda telah terkirim! Tim PEMDI.ID akan segera menghubungi Anda.');
         contactForm.reset();
@@ -267,6 +258,45 @@ function submitContactForm() {
  * 
  * Mengirim POST ke: /api/assessment
  */
+
+// TEST FUNCTION - untuk test dashboard tanpa backend
+function testShowDashboard() {
+  console.log('=== TEST SHOW DASHBOARD ===');
+  
+  // Create dummy results
+  appState.results = {
+    overallScore: 3.5,
+    totalIndicators: 32,
+    assessmentDate: new Date().toLocaleDateString('id-ID'),
+    maturityLevel: 'Defined',
+    domainScores: {
+      1: { score: 3.2, name: 'Kebijakan dan Tata Kelola SPBE' },
+      2: { score: 3.8, name: 'Kapabilitas dan Budaya Digital' },
+      3: { score: 3.5, name: 'Layanan SPBE' },
+      4: { score: 3.4, name: 'Keterpaduan Layanan Digital' }
+    }
+  };
+  
+  // Show results section
+  showSection('results-section');
+  
+  // Update display
+  document.getElementById('overall-score').textContent = '3.5';
+  document.getElementById('overall-level').textContent = 'Defined';
+  document.getElementById('total-indicators').textContent = '32';
+  document.getElementById('assessment-date').textContent = new Date().toLocaleDateString('id-ID');
+  
+  // Render charts after DOM update
+  setTimeout(() => {
+    console.log('Creating charts...');
+    createRadarChart();
+    createDomainChart();
+    console.log('Charts created!');
+  }, 500);
+  
+  alert('Dashboard ditampilkan! Scroll down untuk lihat charts.');
+}
+
 async function submitAssessment(e) {
   // Prevent any default submission behavior
   if (e) {
@@ -341,34 +371,17 @@ async function submitAssessment(e) {
     submitButton.disabled = true;
   }
   
-  console.log('Sending request to:', `${API_BASE_URL}/assessment`);
+  console.log('Sending request to: /api/assessment');
   
   try {
-    // Send POST request dengan FormData
-    const response = await fetch(`${API_BASE_URL}/assessment`, {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-      },
-      body: formData
-      // NOTE: Jangan set 'Content-Type' header - browser akan set otomatis dengan boundary
-    });
+    // Send POST request dengan ApiClient (NO AUTH REQUIRED)
+    const response = await ApiClient.upload('/assessment', formData);
     
-    console.log('Response received:', response.status, response.statusText);
-    
-    // Check if response is JSON
-    const contentType = response.headers.get('content-type');
-    if (!contentType || !contentType.includes('application/json')) {
-      // Response is not JSON (probably HTML error page)
-      const text = await response.text();
-      console.error('Non-JSON response:', text);
-      throw new Error('Server returned non-JSON response. Check backend logs.');
-    }
-    
-    const result = await response.json();
+    // ApiClient.upload() sudah return parsed JSON response
+    const result = response;
     console.log('Response data:', result);
     
-    if (response.ok && result.success) {
+    if (result.success) {
       console.log('✓ Assessment submission successful!');
       
       // Success - simpan assessment ID untuk export
@@ -385,6 +398,8 @@ async function submitAssessment(e) {
       appState.submittedTotalScore = totalScore;
       appState.submittedMaturityLevel = maturityLevel;
       
+      console.log('✅ Assessment saved successfully! Starting display...');
+      
       try {
         // Tampilkan hasil assessment
         console.log('[STEP 1] Calculating results...');
@@ -393,29 +408,45 @@ async function submitAssessment(e) {
         console.log('[STEP 2] Showing results section...');
         showSection('results-section');
         
-        // Wait for section to be visible, then scroll
+        // Wait for DOM to update and Chart.js to be ready
         setTimeout(() => {
-          const resultsSection = document.getElementById('results-section');
-          if (resultsSection) {
-            console.log('[STEP 3] Scrolling to results section...');
-            // Scroll to results section with offset for header
-            const headerHeight = document.querySelector('.header')?.offsetHeight || 80;
-            const elementPosition = resultsSection.getBoundingClientRect().top + window.pageYOffset;
-            const offsetPosition = elementPosition - headerHeight;
-            
-            window.scrollTo({
-              top: offsetPosition,
-              behavior: 'smooth'
-            });
-          } else {
-            console.error('Results section not found!');
-          }
+          console.log('[STEP 3] Rendering charts and details...');
+          console.log('Chart.js available?', typeof Chart !== 'undefined');
+          console.log('Results data:', appState.results);
+          
+          createRadarChart();
+          createDomainChart();
+          renderDomainDetails();
         }, 300);
         
         // Tampilkan tombol download PDF dan Excel
         setTimeout(() => {
           console.log('[STEP 4] Displaying export buttons...');
           displayExportButtons(assessmentId);
+        }, 400);
+        
+        // Wait a bit then scroll to results
+        setTimeout(() => {
+          const resultsSection = document.getElementById('results-section');
+          if (resultsSection) {
+            console.log('[STEP 5] Scrolling to results section...');
+            
+            // Force show results section again
+            resultsSection.classList.remove('section--hidden');
+            resultsSection.style.display = 'block';
+            resultsSection.style.visibility = 'visible';
+            
+            // Update URL hash to results (prevent back navigation)
+            history.pushState(null, '', '#results-section');
+            
+            // Scroll to top of results section
+            window.scrollTo({
+              top: resultsSection.offsetTop - 80,
+              behavior: 'smooth'
+            });
+          } else {
+            console.error('Results section not found!');
+          }
         }, 500);
         
         console.log('✓ Assessment flow completed successfully!');
@@ -460,6 +491,8 @@ async function submitAssessment(e) {
  * Menampilkan tombol download PDF dan Excel setelah assessment berhasil
  */
 function displayExportButtons(assessmentId) {
+  console.log('=== displayExportButtons called with ID:', assessmentId, '===');
+  
   // Cari container yang sudah ada di HTML
   const container = document.getElementById('export-buttons-container');
   if (!container) {
@@ -470,25 +503,51 @@ function displayExportButtons(assessmentId) {
   // Clear existing content
   container.innerHTML = '';
   
-  // Button PDF Export
-  const pdfButton = document.createElement('a');
-  pdfButton.href = `${API_BASE_URL}/assessment/${assessmentId}/export/pdf`;
-  pdfButton.className = 'btn btn--secondary';
-  pdfButton.textContent = '📥 Export PDF';
-  pdfButton.download = `Assessment_Report_${assessmentId}.pdf`;
-  pdfButton.target = '_blank';
+  // Button PDF Export - sama style dengan Assessment Baru
+  const pdfButton = document.createElement('button');
+  pdfButton.className = 'btn btn--primary';
+  pdfButton.innerHTML = 'Export PDF';
+  pdfButton.onclick = async (e) => {
+    e.preventDefault();
+    pdfButton.innerHTML = 'Generating...';
+    pdfButton.disabled = true;
+    try {
+      await ApiClient.download(`/assessment/${assessmentId}/export/pdf`, `Assessment_Report_${assessmentId}.pdf`);
+      pdfButton.innerHTML = 'Downloaded!';
+      setTimeout(() => { pdfButton.innerHTML = 'Export PDF'; pdfButton.disabled = false; }, 2000);
+    } catch (error) {
+      console.error('PDF export error:', error);
+      pdfButton.innerHTML = 'Error';
+      alert('Gagal export PDF: ' + error.message);
+      setTimeout(() => { pdfButton.innerHTML = 'Export PDF'; pdfButton.disabled = false; }, 2000);
+    }
+  };
   
-  // Button Excel Export
-  const excelButton = document.createElement('a');
-  excelButton.href = `${API_BASE_URL}/assessment/${assessmentId}/export/excel`;
-  excelButton.className = 'btn btn--secondary';
-  excelButton.textContent = '📊 Export Excel';
-  excelButton.download = `Assessment_Summary_${assessmentId}.xlsx`;
-  excelButton.target = '_blank';
+  // Button Excel Export - sama style dengan Assessment Baru
+  const excelButton = document.createElement('button');
+  excelButton.className = 'btn btn--primary';
+  excelButton.innerHTML = 'Export Excel';
+  excelButton.onclick = async (e) => {
+    e.preventDefault();
+    excelButton.innerHTML = 'Generating...';
+    excelButton.disabled = true;
+    try {
+      await ApiClient.download(`/assessment/${assessmentId}/export/excel`, `Assessment_Summary_${assessmentId}.xlsx`);
+      excelButton.innerHTML = 'Downloaded!';
+      setTimeout(() => { excelButton.innerHTML = 'Export Excel'; excelButton.disabled = false; }, 2000);
+    } catch (error) {
+      console.error('Excel export error:', error);
+      excelButton.innerHTML = 'Error';
+      alert('Gagal export Excel: ' + error.message);
+      setTimeout(() => { excelButton.innerHTML = 'Export Excel'; excelButton.disabled = false; }, 2000);
+    }
+  };
   
   // Append buttons ke container
   container.appendChild(pdfButton);
   container.appendChild(excelButton);
+  
+  console.log('✅ Export buttons created successfully');
 }
 
 
@@ -505,11 +564,16 @@ function initializeApiIntegration() {
   // Bind submit assessment button ke fungsi baru
   const submitBtn = document.getElementById('submit-btn');
   if (submitBtn) {
-    submitBtn.onclick = submitAssessment;
+    submitBtn.onclick = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      submitAssessment();
+      return false;
+    };
   }
   
   console.log('✓ API Integration initialized');
-  console.log(`API Base URL: ${API_BASE_URL}`);
+  console.log(`API Base URL: ${ApiClient.getBaseUrl()}`);
 }
 
 
@@ -521,35 +585,24 @@ function initializeApiIntegration() {
  * testApiConnection();
  */
 async function testApiConnection() {
-  console.log('Testing API connection to:', API_BASE_URL);
+  console.log('Testing API connection using ApiClient...');
   
   try {
-    const response = await fetch(`${API_BASE_URL}/assessment`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify({
-        org_name: 'Test Organization',
-        org_type: 'Pemerintah',
-        assessor_name: 'Test Assessor',
-        assessor_position: 'Test Position',
-        assessment_date: new Date().toISOString().split('T')[0],
-        responses: []
-      })
+    const response = await ApiClient.post('/assessment', {
+      org_name: 'Test Organization',
+      org_type: 'Pemerintah',
+      assessor_name: 'Test Assessor',
+      assessor_position: 'Test Position',
+      assessment_date: new Date().toISOString().split('T')[0],
+      responses: []
     });
     
-    console.log('Response status:', response.status);
-    console.log('Response headers:', response.headers);
+    console.log('Response data:', response);
     
-    const data = await response.json();
-    console.log('Response data:', data);
-    
-    if (response.ok) {
+    if (response.success) {
       console.log('✓ API connection test PASSED');
     } else {
-      console.log('✗ API returned error:', data.message);
+      console.log('✗ API returned error:', response.message);
     }
   } catch (error) {
     console.error('✗ API connection test FAILED:', error);
@@ -1097,13 +1150,7 @@ function renderResults() {
       levelElement.className = `summary-level status--level-${overallLevel.level}`;
     }
     
-    // Create charts
-    console.log('Creating charts...');
-    createRadarChart();
-    createDomainChart();
-    renderDomainDetails();
-    
-    console.log('Results rendered successfully');
+    console.log('Results data updated successfully');
   } catch (error) {
     console.error('Error rendering results:', error);
     alert('Error menampilkan hasil: ' + error.message);
@@ -1123,20 +1170,41 @@ function createRadarChart() {
   
   // Check if Chart.js is loaded
   if (typeof Chart === 'undefined') {
-    console.error('Chart.js not loaded!');
+    console.error('❌ Chart.js not loaded!');
+    alert('Chart.js library belum dimuat. Refresh halaman.');
     return;
   }
+  
+  console.log('✓ Chart.js loaded');
   
   const canvas = document.getElementById('radar-chart');
   if (!canvas) {
-    console.error('Radar chart canvas not found');
+    console.error('❌ Radar chart canvas not found');
     return;
   }
   
-  console.log('Canvas found, creating chart...');
+  console.log('✓ Canvas found:', canvas);
+  console.log('Canvas dimensions:', canvas.width, 'x', canvas.height);
+  console.log('Canvas style:', canvas.style.width, canvas.style.height);
+  
+  // Ensure canvas is visible
+  canvas.style.display = 'block';
+  canvas.width = 600;
+  canvas.height = 350;
+  
+  console.log('✓ Canvas configured');
+  
+  // Check if we have results
+  if (!appState.results || !appState.results.domainScores) {
+    console.error('❌ No results data available');
+    return;
+  }
+  
+  console.log('✓ Results data available');
   
   // Destroy existing chart
   if (radarChartInstance) {
+    console.log('Destroying existing radar chart');
     radarChartInstance.destroy();
   }
   
@@ -1184,21 +1252,40 @@ function createRadarChart() {
         }
       }
     });
-    console.log('Radar chart created successfully');
+    console.log('✅ Radar chart created successfully!');
   } catch (error) {
-    console.error('Error creating radar chart:', error);
+    console.error('❌ Error creating radar chart:', error);
+    alert('Error membuat radar chart: ' + error.message);
   }
 }
 
 function createDomainChart() {
+  console.log('=== createDomainChart ===');
+  
   const canvas = document.getElementById('domain-chart');
   if (!canvas) {
-    console.error('Domain chart canvas not found');
+    console.error('❌ Domain chart canvas not found');
     return;
   }
   
+  console.log('✓ Canvas found:', canvas);
+  
+  // Ensure canvas is visible
+  canvas.style.display = 'block';
+  canvas.width = 600;
+  canvas.height = 350;
+  
+  // Check if we have results
+  if (!appState.results || !appState.results.domainScores) {
+    console.error('❌ No results data available');
+    return;
+  }
+  
+  console.log('✓ Results data available');
+  
   // Destroy existing chart
   if (domainChartInstance) {
+    console.log('Destroying existing domain chart');
     domainChartInstance.destroy();
   }
   
@@ -1208,37 +1295,46 @@ function createDomainChart() {
   const domainScores = assessmentData.domains.map(d => appState.results.domainScores[d.id].score);
   const colors = ['#1FB8CD', '#FFC185', '#B4413C', '#ECEBD5'];
   
-  domainChartInstance = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: domainLabels,
-      datasets: [{
-        label: 'Skor Domain',
-        data: domainScores,
-        backgroundColor: colors,
-        borderColor: colors.map(c => c + 'CC'),
-        borderWidth: 1
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        y: {
-          beginAtZero: true,
-          max: 5,
-          ticks: {
-            stepSize: 1
+  console.log('Domain labels:', domainLabels);
+  console.log('Domain scores:', domainScores);
+  
+  try {
+    domainChartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: domainLabels,
+        datasets: [{
+          label: 'Skor Domain',
+          data: domainScores,
+          backgroundColor: colors,
+          borderColor: colors.map(c => c + 'CC'),
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 5,
+            ticks: {
+              stepSize: 1
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            display: false
           }
         }
-      },
-      plugins: {
-        legend: {
-          display: false
-        }
       }
-    }
-  });
+    });
+    console.log('✅ Domain chart created successfully!');
+  } catch (error) {
+    console.error('❌ Error creating domain chart:', error);
+    alert('Error membuat domain chart: ' + error.message);
+  }
 }
 
 function renderDomainDetails() {

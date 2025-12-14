@@ -1,0 +1,347 @@
+{
+  "info": {
+    "name": "PEMDI.ID API - Assessment Platform",
+    "description": "API Platform Konsultasi dan Pendampingan SPBE & Pemerintahan Digital",
+    "version": "2.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\",\n  \"password_confirmation\": \"password123\",\n  \"role\": \"user\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "register"]
+            },
+            "description": "Register a new user account"
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "login"]
+            },
+            "description": "Login and get access token"
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/logout",
+              "host": ["{{base_url}}"],
+              "path": ["api", "logout"]
+            },
+            "description": "Logout and revoke token"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "profile"]
+            },
+            "description": "Get authenticated user profile"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Contact",
+      "item": [
+        {
+          "name": "Submit Contact Form",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"organization_name\": \"Pemerintah Kota Bandung\",\n  \"full_name\": \"Budi Santoso\",\n  \"email\": \"budi@bandung.go.id\",\n  \"service\": \"Konsultasi SPBE\",\n  \"message\": \"Kami tertarik untuk melakukan assessment digital maturity\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/contact",
+              "host": ["{{base_url}}"],
+              "path": ["api", "contact"]
+            },
+            "description": "Submit contact form (public endpoint)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Assessment",
+      "item": [
+        {
+          "name": "Submit Assessment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"org_name\": \"Pemerintah Kota Bandung\",\n  \"org_type\": \"Pemerintah Daerah\",\n  \"assessor_name\": \"John Doe\",\n  \"assessor_position\": \"IT Manager\",\n  \"assessment_date\": \"2025-12-14\",\n  \"responses\": [\n    {\n      \"indicator_id\": 1,\n      \"score\": 4,\n      \"evidence_text\": \"Sudah ada dokumen kebijakan TI\"\n    },\n    {\n      \"indicator_id\": 2,\n      \"score\": 3,\n      \"evidence_text\": \"Governance sudah berjalan namun belum optimal\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/assessment",
+              "host": ["{{base_url}}"],
+              "path": ["api", "assessment"]
+            },
+            "description": "Submit completed assessment (requires auth)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Assessment",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/assessment/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "assessment", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "your-assessment-uuid"
+                }
+              ]
+            },
+            "description": "Get assessment details by ID (requires auth)"
+          },
+          "response": []
+        },
+        {
+          "name": "Export PDF",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/assessment/:id/export/pdf",
+              "host": ["{{base_url}}"],
+              "path": ["api", "assessment", ":id", "export", "pdf"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "your-assessment-uuid"
+                }
+              ]
+            },
+            "description": "Export assessment as PDF (requires auth)"
+          },
+          "response": []
+        },
+        {
+          "name": "Export Excel",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/assessment/:id/export/excel",
+              "host": ["{{base_url}}"],
+              "path": ["api", "assessment", ":id", "export", "excel"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "your-assessment-uuid"
+                }
+              ]
+            },
+            "description": "Export assessment as Excel (requires auth)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Progress",
+      "item": [
+        {
+          "name": "Save Progress",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"assessment_id\": null,\n  \"progress_data\": {\n    \"currentStep\": 3,\n    \"responses\": [\n      {\n        \"indicator_id\": 1,\n        \"score\": 4,\n        \"evidence_text\": \"Draft evidence\"\n      }\n    ],\n    \"metadata\": {\n      \"org_name\": \"Test Organization\",\n      \"saved_by\": \"John Doe\"\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/assessment/progress",
+              "host": ["{{base_url}}"],
+              "path": ["api", "assessment", "progress"]
+            },
+            "description": "Save assessment progress (requires auth)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Progress",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/assessment/progress",
+              "host": ["{{base_url}}"],
+              "path": ["api", "assessment", "progress"]
+            },
+            "description": "Get all user's progress (requires auth)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Progress by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/assessment/progress/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "assessment", "progress", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Get specific progress by ID (requires auth)"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Progress",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/assessment/progress/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "assessment", "progress", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Delete progress by ID (requires auth)"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
