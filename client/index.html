@@ -535,11 +535,13 @@
             <!-- Domain Details -->
             <div id="domain-details" class="domain-details"></div>
 
-            <!-- Actions -->
+            <!-- Actions - Export & New Assessment -->
             <div class="results-actions">
                 <!-- Export buttons will be dynamically created by displayExportButtons() -->
                 <div id="export-buttons-container"></div>
-                <button class="btn btn--primary" onclick="startNewAssessment()">Assessment Baru</button>
+                <div class="new-assessment-container">
+                    <button class="btn btn--primary" onclick="startNewAssessment()">Assessment Baru</button>
+                </div>
             </div>
         </div>
     </section>
@@ -820,6 +822,7 @@
 
     <!-- Load Chart.js before app.js so `new Chart(...)` is available -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="js/api.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
