@@ -6,13 +6,18 @@
     "keywords": ["laravel", "framework"],
     "license": "MIT",
     "require": {
-        "php": "^8.2",
+        "php": "^8.3",
         "barryvdh/laravel-dompdf": "^3.1",
         "filament/filament": "^4.3",
         "laravel/framework": "^12.0",
         "laravel/sanctum": "^4.2",
         "laravel/tinker": "^2.10.1",
-        "maatwebsite/excel": "^1.1"
+        "maatwebsite/excel": "^1.1",
+        "symfony/clock": "7.0",
+        "symfony/css-selector": "7.0",
+        "symfony/event-dispatcher": "7.0",
+        "symfony/string": "7.0",
+        "symfony/translation": "7.0"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

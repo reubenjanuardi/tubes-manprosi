@@ -102,6 +102,19 @@ class AssessmentController extends Controller
     }
 
     /**
+     * get all indicators
+     */
+    public function getIndicators()
+    {
+        // Mengambil semua domain beserta anak-anaknya (subdomain & indikator)
+        $data = Domain::with('subdomains.indicators')->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $data
+        ]);
+    }
+    /**
      * Get assessment details by ID
      */
     public function show(string $id)

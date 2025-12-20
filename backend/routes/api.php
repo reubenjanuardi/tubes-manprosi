@@ -30,6 +30,7 @@ Route::post('/assessment', [AssessmentController::class, 'store']);
 Route::get('/assessment/{id}', [AssessmentController::class, 'show']);
 Route::get('/assessment/{id}/export/pdf', [AssessmentController::class, 'exportPdf']);
 Route::get('/assessment/{id}/export/excel', [AssessmentController::class, 'exportExcel']);
+Route::get('/indicators', [AssessmentController::class, 'getIndicators']);
 
 // Progress endpoints (PUBLIC)
 Route::get('/assessment/progress', [ProgressController::class, 'index']);
