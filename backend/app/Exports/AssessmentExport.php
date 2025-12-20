@@ -11,7 +11,8 @@ class AssessmentExport
 
     public function __construct(Assessment $assessment)
     {
-        $this->assessment = $assessment;
+        // Pastikan kita me-load relasi indikator pada setiap respon
+        $this->assessment = $assessment->load('responses.indicator');
     }
 
     /**
@@ -41,7 +42,7 @@ class AssessmentExport
         foreach ($this->assessment->responses as $response) {
             $data[] = [
                 $response->indicator_id,
-                IndicatorMapper::getIndicatorName($response->indicator_id),
+                $response->indicator ? $response->indicator->name : 'Unknown Indicator',
                 $response->score,
                 $response->evidence_text ?? $response->document_path ?? '-',
             ];

@@ -64,4 +64,13 @@ class User extends Authenticatable
     {
         return $this->hasMany(AssessmentProgress::class);
     }
+
+    /**
+     * Menentukan siapa saja yang boleh login ke dashboard admin.
+     */
+    public function canAccessPanel(Panel $panel): bool
+    {
+        // Pastikan hanya user dengan role admin yang bisa masuk
+        return $this->role === 'admin';
+    }
 }

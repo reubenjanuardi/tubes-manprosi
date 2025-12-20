@@ -4,12 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Assessment;
 use App\Models\AssessmentResponse;
-use App\Helpers\IndicatorMapper;
+use App\Models\Indicator; // Tambahkan ini
+use App\Models\Domain;    // Tambahkan ini
+use Barryvdh\DomPDF\Facade\Pdf; // Tambahkan ini untuk memperbaiki error 'Pdf'
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
-use Barryvdh\DomPDF\Facade\Pdf;
-use Maatwebsite\Excel\Facades\Excel;
+use App\Http\Requests\StoreAssessmentRequest;
+// use App\Helpers\IndicatorMapper; // Hapus atau komentari ini
 
 class AssessmentController extends Controller
 {
@@ -17,124 +17,88 @@ class AssessmentController extends Controller
      * Store a newly created assessment with responses and documents
      * Handles multipart/form-data with file uploads
      */
-    public function store(Request $request)
+    public function store(StoreAssessmentRequest $request)
     {
-        try {
-            // Validate input data
-            $validated = $request->validate([
-                'org_name' => 'required|string|max:255',
-                'org_type' => 'required|string|max:255',
-                'assessor_name' => 'required|string|max:255',
-                'assessor_position' => 'required|string|max:255',
-                'assessment_date' => 'required|date',
-                'responses' => 'required|array',
-                'responses.*.indicator_id' => 'required|integer|between:1,32',
-                'responses.*.score' => 'required|integer|between:1,5',
-                'responses.*.evidence_text' => 'nullable|string',
-            ]);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation failed',
-                'errors' => $e->errors(),
-            ], 422);
-        }
+        $validated = $request->validated();
 
-        try {
-            DB::beginTransaction();
+        // 1. Buat record Assessment awal
+        $assessment = Assessment::create([
+            'org_name' => $validated['org_name'],
+            'org_type' => $validated['org_type'],
+            'assessor_name' => $validated['assessor_name'],
+            'assessor_position' => $validated['assessor_position'],
+            'total_score' => 0, // Akan diupdate nanti
+            'maturity_level' => 'Initial',
+            'status' => 'completed',
+            'assessment_date' => $validated['assessment_date'] ?? now(),
+        ]);
 
-            // Calculate total score
-            $scores = array_column($validated['responses'], 'score');
-            $totalScore = count($scores) > 0 ? array_sum($scores) / count($scores) : 0;
+        // 2. Simpan semua respon dan kumpulkan skor per subdomain
+        $scoresBySubdomain = [];
+        foreach ($validated['responses'] as $resp) {
+            $indicator = Indicator::find($resp['indicator_id']);
 
-            // Determine maturity level
-            $maturityLevel = IndicatorMapper::getMaturityLevel($totalScore);
-
-            // Create assessment record
-            $assessment = Assessment::create([
-                'org_name' => $validated['org_name'],
-                'org_type' => $validated['org_type'],
-                'assessor_name' => $validated['assessor_name'],
-                'assessor_position' => $validated['assessor_position'],
-                'assessment_date' => $validated['assessment_date'],
-                'total_score' => $totalScore,
-                'maturity_level' => $maturityLevel,
-                'status' => 'completed',
-            ]);
-
-            // Create directory for evidence files
-            $evidenceDir = "public/evidence/{$assessment->id}";
-            if (!Storage::exists($evidenceDir)) {
-                Storage::makeDirectory($evidenceDir);
-            }
-
-            // Store responses with file uploads
-            foreach ($validated['responses'] as $index => $responseData) {
-                $documentPath = null;
-
-                // Check if file exists for this response index
-                $fileKey = "responses.{$index}.file";
-                if ($request->hasFile($fileKey)) {
-                    $file = $request->file($fileKey);
-
-                    // Validate file type and size
-                    $allowedMimes = [
-                        'application/pdf',
-                        'application/msword',
-                        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                        'image/jpeg',
-                        'image/png',
-                        'image/jpg'
-                    ];
-
-                    if (!in_array($file->getMimeType(), $allowedMimes)) {
-                        DB::rollBack();
-                        return response()->json([
-                            'success' => false,
-                            'message' => 'Invalid file type. Allowed: PDF, DOC, DOCX, JPG, PNG',
-                        ], 422);
-                    }
-
-                    if ($file->getSize() > 5 * 1024 * 1024) { // 5MB max
-                        DB::rollBack();
-                        return response()->json([
-                            'success' => false,
-                            'message' => 'File size exceeds 5MB limit',
-                        ], 422);
-                    }
-
-                    // Store file
-                    $filePath = $file->store("evidence/{$assessment->id}", 'public');
-                    $documentPath = "/storage/{$filePath}";
-                }
-
-                // Create assessment response
+            if ($indicator) {
                 AssessmentResponse::create([
                     'assessment_id' => $assessment->id,
-                    'indicator_id' => $responseData['indicator_id'],
-                    'score' => $responseData['score'],
-                    'evidence_text' => $responseData['evidence_text'] ?? null,
-                    'document_path' => $documentPath,
+                    'indicator_id' => $resp['indicator_id'],
+                    'score' => $resp['score'],
+                    'evidence_text' => $resp['evidence_text'] ?? null,
                 ]);
+
+                // Kelompokkan skor untuk perhitungan rata-rata subdomain
+                $scoresBySubdomain[$indicator->subdomain_id][] = $resp['score'];
             }
-
-            DB::commit();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Assessment saved successfully',
-                'assessment_id' => $assessment->id,
-                'total_score' => $assessment->total_score,
-                'maturity_level' => $assessment->maturity_level,
-            ], 201);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to save assessment',
-                'error' => $e->getMessage(),
-            ], 500);
         }
+
+        // 3. Hitung Skor Akhir Terbobot
+        $overallScore = 0;
+        $domains = Domain::with('subdomains')->get();
+
+        foreach ($domains as $domain) {
+            $domainScore = 0;
+            $subdomainCountInDomain = $domain->subdomains->count();
+
+            if ($subdomainCountInDomain > 0) {
+                $sumSubdomainAverages = 0;
+                foreach ($domain->subdomains as $subdomain) {
+                    $subScores = $scoresBySubdomain[$subdomain->id] ?? [0];
+                    $subAverage = array_sum($subScores) / count($subScores);
+                    $sumSubdomainAverages += $subAverage;
+                }
+
+                // Rata-rata skor domain
+                $domainAverage = $sumSubdomainAverages / $subdomainCountInDomain;
+                // Kalikan dengan bobot domain (misal 20% = 0.2)
+                $overallScore += ($domainAverage * $domain->weight / 100);
+            }
+        }
+
+        // 4. Update hasil akhir ke record assessment
+        $assessment->update([
+            'total_score' => round($overallScore, 2),
+            'maturity_level' => $this->calculateMaturityLevel($overallScore),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Assessment berhasil disimpan',
+            'assessment_id' => $assessment->id,
+            'total_score' => $assessment->total_score,
+            'maturity_level' => $assessment->maturity_level
+        ]);
+    }
+
+    /**
+     * Calculate maturity level based on total score
+     */
+    private function calculateMaturityLevel($score)
+    {
+        if ($score < 2) return 'Initial';
+        if ($score < 3) return 'Managed';
+        if ($score < 4) return 'Defined';
+        if ($score < 5) return 'Quantitatively Managed';
+        return 'Optimizing';
     }
 
     /**
@@ -164,12 +128,16 @@ class AssessmentController extends Controller
     public function exportPdf(string $id)
     {
         try {
+            // Eager load responses untuk performa lebih baik
             $assessment = Assessment::with('responses')->findOrFail($id);
+
+            // Ambil semua nama indikator dari database
+            $indicators = Indicator::pluck('name', 'id')->toArray();
 
             // Prepare data for PDF view
             $data = [
                 'assessment' => $assessment,
-                'indicators' => IndicatorMapper::getIndicators(),
+                'indicators' => $indicators(),
             ];
 
             // Generate PDF
@@ -197,31 +165,31 @@ class AssessmentController extends Controller
             // Create Excel export object
             $export = new \App\Exports\AssessmentExport($assessment);
             $data = $export->toArray();
-            
+
             // Generate filename
             $filename = "Assessment_Summary_{$assessment->id}.csv";
-            
+
             // Set headers for CSV download
             $headers = [
                 'Content-Type' => 'text/csv; charset=UTF-8',
                 'Content-Disposition' => 'attachment; filename="' . $filename . '"',
                 'Cache-Control' => 'max-age=0',
             ];
-            
+
             // Create CSV response
-            $callback = function() use ($data) {
+            $callback = function () use ($data) {
                 $file = fopen('php://output', 'w');
-                
+
                 // Add BOM for Excel UTF-8 support
-                fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
-                
+                fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
                 foreach ($data as $row) {
                     fputcsv($file, $row);
                 }
-                
+
                 fclose($file);
             };
-            
+
             return response()->stream($callback, 200, $headers);
         } catch (\Exception $e) {
             return response()->json([

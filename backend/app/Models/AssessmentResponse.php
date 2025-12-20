@@ -27,4 +27,8 @@ class AssessmentResponse extends Model
     {
         return $this->belongsTo(Assessment::class);
     }
+    public function indicator()
+    {
+        return $this->belongsTo(\App\Models\Indicator::class);
+    }
 }
