@@ -17,5 +17,6 @@ class DatabaseSeeder extends Seeder
     {
         // Run UserSeeder
         $this->call(UserSeeder::class);
+        $this->call(AssessmentHierarchySeeder::class);
     }
 }
