@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - PEMDILID</title>
+    <link href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link href="/admin/admin-styles.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h4>PEMDILID Admin</h4>
+            <small style="color: rgba(255,255,255,0.6);">Phase 2 Dashboard</small>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="/admin/dashboard.html" class="active"><i class='bx bxs-dashboard'></i> Dashboard</a></li>
+            <li><a href="/admin/users.html"><i class='bx bxs-user'></i> User Management</a></li>
+            <li><a href="/admin/assessments.html"><i class='bx bxs-file-doc'></i> Assessments</a></li>
+            <li><a href="/admin/indicators.html"><i class='bx bxs-bullseye'></i> Indicators</a></li>
+            <li><a href="/admin/responses.html"><i class='bx bxs-message-square-detail'></i> Responses</a></li>
+            <li><a href="/admin/reports.html"><i class='bx bxs-report'></i> Reports</a></li>
+            <li><a href="/admin/activity-logs.html"><i class='bx bxs-time'></i> Activity Logs</a></li>
+            <li><a href="/admin/settings.html"><i class='bx bxs-cog'></i> Settings</a></li>
+        </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Top Navbar -->
+        <nav class="top-navbar">
+            <div>
+                <h5 style="margin: 0; font-weight: 600;">Dashboard</h5>
+            </div>
+            <div class="user-info">
+                <span id="userName">Admin User</span>
+                <div class="user-avatar" id="userAvatar">A</div>
+                <button class="btn btn-sm btn-outline-danger" onclick="logout()">
+                    <i class='bx bx-log-out'></i> Logout
+                </button>
+            </div>
+        </nav>
+
+        <!-- Content Area -->
+        <div class="content-area">
+            <div class="page-header">
+                <h1>Dashboard Overview</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item active">Dashboard</li>
+                    </ol>
+                </nav>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card">
+                    <div class="stat-icon primary">
+                        <i class='bx bxs-user'></i>
+                    </div>
+                    <div class="stat-details">
+                        <h3 id="totalUsers">0</h3>
+                        <p>Total Users</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon success">
+                        <i class='bx bxs-file-doc'></i>
+                    </div>
+                    <div class="stat-details">
+                        <h3 id="totalAssessments">0</h3>
+                        <p>Total Assessments</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon warning">
+                        <i class='bx bxs-hourglass'></i>
+                    </div>
+                    <div class="stat-details">
+                        <h3 id="activeAssessments">0</h3>
+                        <p>Active Assessments</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon danger">
+                        <i class='bx bxs-check-circle'></i>
+                    </div>
+                    <div class="stat-details">
+                        <h3 id="completedAssessments">0</h3>
+                        <p>Completed This Month</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activities -->
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 style="margin: 0;">Recent Assessments</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="recentAssessments">
+                                <p class="text-muted">Loading...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 style="margin: 0;">Quick Actions</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-grid gap-2">
+                                <a href="/admin/assessments.html" class="btn btn-primary">
+                                    <i class='bx bx-plus'></i> Create Assessment
+                                </a>
+                                <a href="/admin/users.html" class="btn btn-outline-primary">
+                                    <i class='bx bx-user-plus'></i> Add User
+                                </a>
+                                <a href="/admin/indicators.html" class="btn btn-outline-primary">
+                                    <i class='bx bx-list-ul'></i> Manage Indicators
+                                </a>
+                                <a href="/admin/reports.html" class="btn btn-outline-primary">
+                                    <i class='bx bx-bar-chart'></i> Generate Report
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API Configuration
+        const API_URL = 'http://127.0.0.1:8000/api';
+        let authToken = localStorage.getItem('admin_token');
+
+        // Check authentication
+        if (!authToken) {
+            window.location.href = '/admin/login.html';
+        }
+
+        // Load dashboard data
+        async function loadDashboard() {
+            try {
+                // Load user info
+                const userResponse = await fetch(`${API_URL}/auth/me`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!userResponse.ok) {
+                    console.error('Auth failed:', await userResponse.text());
+                    localStorage.removeItem('admin_token');
+                    window.location.href = '/admin/login.html';
+                    return;
+                }
+
+                const userData = await userResponse.json();
+                if (userData.success && userData.data && userData.data.user) {
+                    document.getElementById('userName').textContent = userData.data.user.name;
+                    document.getElementById('userAvatar').textContent = userData.data.user.name.charAt(0).toUpperCase();
+                }
+
+                // Load statistics with error handling
+                try {
+                    const userStatsResponse = await fetch(`${API_URL}/admin/users/statistics`, {
+                        headers: { 'Authorization': `Bearer ${authToken}`, 'Accept': 'application/json' }
+                    });
+                    
+                    if (userStatsResponse.ok) {
+                        const userStats = await userStatsResponse.json();
+                        document.getElementById('totalUsers').textContent = userStats.data?.total_users || 0;
+                    }
+                } catch (e) {
+                    console.error('User stats error:', e);
+                }
+
+                try {
+                    const assessmentStatsResponse = await fetch(`${API_URL}/admin/assessments/statistics`, {
+                        headers: { 'Authorization': `Bearer ${authToken}`, 'Accept': 'application/json' }
+                    });
+                    
+                    if (assessmentStatsResponse.ok) {
+                        const assessmentStats = await assessmentStatsResponse.json();
+                        document.getElementById('totalAssessments').textContent = assessmentStats.data?.total_assessments || 0;
+                        document.getElementById('activeAssessments').textContent = assessmentStats.data?.active_assessments || 0;
+                    }
+                } catch (e) {
+                    console.error('Assessment stats error:', e);
+                }
+
+                try {
+                    const dashboardResponse = await fetch(`${API_URL}/admin/assessments/dashboard`, {
+                        headers: { 'Authorization': `Bearer ${authToken}`, 'Accept': 'application/json' }
+                    });
+                    
+                    if (dashboardResponse.ok) {
+                        const dashboardData = await dashboardResponse.json();
+                        document.getElementById('completedAssessments').textContent = dashboardData.data?.completed_this_month || 0;
+                        displayRecentAssessments(dashboardData.data?.recent_assessments || []);
+                    }
+                } catch (e) {
+                    console.error('Dashboard data error:', e);
+                    displayRecentAssessments([]);
+                }
+
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+                alert('Failed to load dashboard data. Check console for details.');
+            }
+        }
+
+        function displayRecentAssessments(assessments) {
+            const container = document.getElementById('recentAssessments');
+            
+            if (assessments.length === 0) {
+                container.innerHTML = '<p class="text-muted">No recent assessments</p>';
+                return;
+            }
+
+            const html = assessments.map(assessment => `
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-3" style="border-bottom: 1px solid #e2e8f0;">
+                    <div>
+                        <h6 style="margin: 0;">${assessment.name}</h6>
+                        <small class="text-muted">${assessment.org_name || 'N/A'}</small>
+                    </div>
+                    <span class="badge bg-${getStatusColor(assessment.assessment_status)}">${assessment.assessment_status}</span>
+                </div>
+            `).join('');
+
+            container.innerHTML = html;
+        }
+
+        function getStatusColor(status) {
+            const colors = {
+                'draft': 'secondary',
+                'active': 'primary',
+                'completed': 'success',
+                'archived': 'dark'
+            };
+            return colors[status] || 'secondary';
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('admin_token');
+                sessionStorage.removeItem('admin_token');
+                localStorage.removeItem('admin_user');
+                window.location.href = '/admin/login.html?logout=true';
+            }
+        }
+
+        // Load dashboard on page load
+        loadDashboard();
+    </script>
+</body>
+</html>

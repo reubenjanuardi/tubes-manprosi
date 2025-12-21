@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Indicator Management</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: #fff;
+            padding: 20px 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            color: #0066cc;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #0066cc;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0052a3;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .controls {
+            background: #fff;
+            padding: 20px 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .search-box {
+            flex: 1;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .filter-box select {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .table-container {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #f8f9fa;
+        }
+
+        th {
+            padding: 15px 20px;
+            text-align: left;
+            font-weight: 600;
+            color: #555;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        td {
+            padding: 15px 20px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .badge-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            font-size: 20px;
+            color: #333;
+        }
+
+        .close {
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            padding: 20px;
+        }
+
+        .page-btn {
+            padding: 8px 15px;
+            border: 1px solid #ddd;
+            background: #fff;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .page-btn.active {
+            background: #0066cc;
+            color: white;
+            border-color: #0066cc;
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Indicator Management Dashboard</h1>
+            <button class="btn btn-primary" onclick="openCreateModal()">+ Add New Indicator</button>
+        </div>
+
+        <div id="alert-container"></div>
+
+        <div class="controls">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search indicators..." onkeyup="handleSearch()">
+            </div>
+            <div class="filter-box">
+                <select id="status-filter" onchange="handleFilter()">
+                    <option value="all">All Status</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                </select>
+            </div>
+            <button class="btn btn-success" onclick="loadIndicators()">🔄 Refresh</button>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 60px;">Order</th>
+                        <th>Group Name</th>
+                        <th>Indicator Text</th>
+                        <th style="width: 100px;">Type</th>
+                        <th style="width: 100px;">Status</th>
+                        <th style="width: 200px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="indicators-tbody">
+                    <tr>
+                        <td colspan="6" class="loading">Loading indicators...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination" id="pagination-container"></div>
+    </div>
+
+    <!-- Create/Edit Modal -->
+    <div id="indicator-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Add New Indicator</h2>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <form id="indicator-form" onsubmit="handleSubmit(event)">
+                <input type="hidden" id="indicator-id">
+                
+                <div class="form-group">
+                    <label>Group Name *</label>
+                    <input type="text" id="group-name" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Indicator Text *</label>
+                    <textarea id="indicator-text" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Type *</label>
+                    <select id="indicator-type" required onchange="handleTypeChange()">
+                        <option value="scale">Scale</option>
+                        <option value="boolean">Boolean</option>
+                        <option value="text">Text</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="scale-values-group">
+                    <label>Scale Values (comma separated)</label>
+                    <input type="text" id="scale-values" value="1,2,3,4,5">
+                </div>
+
+                <div class="form-group" id="scale-labels-group">
+                    <label>Scale Labels (comma separated)</label>
+                    <input type="text" id="scale-labels" value="Initial,Managed,Defined,Quantitatively Managed,Optimizing">
+                </div>
+
+                <div class="form-group">
+                    <label>Display Order *</label>
+                    <input type="number" id="display-order" min="0" value="0" required>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="is-active" checked>
+                        Active
+                    </label>
+                </div>
+
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Indicator</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8000/api';
+        const AUTH_TOKEN = localStorage.getItem('auth_token'); // Get from login
+        
+        let currentPage = 1;
+        let currentSearch = '';
+        let currentStatus = 'all';
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadIndicators();
+        });
+
+        // Load indicators from API
+        async function loadIndicators(page = 1) {
+            try {
+                const params = new URLSearchParams({
+                    page: page,
+                    per_page: 15,
+                    search: currentSearch,
+                    status: currentStatus
+                });
+
+                const response = await fetch(`${API_BASE_URL}/admin/indicators?${params}`, {
+                    headers: {
+                        'Authorization': `Bearer ${AUTH_TOKEN}`,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    renderTable(result.data.data);
+                    renderPagination(result.data);
+                    currentPage = page;
+                } else {
+                    showAlert('Failed to load indicators', 'error');
+                }
+            } catch (error) {
+                console.error('Error loading indicators:', error);
+                showAlert('Error loading indicators: ' + error.message, 'error');
+            }
+        }
+
+        // Render table
+        function renderTable(indicators) {
+            const tbody = document.getElementById('indicators-tbody');
+
+            if (indicators.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="loading">No indicators found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = indicators.map(indicator => `
+                <tr>
+                    <td>${indicator.display_order}</td>
+                    <td>${indicator.group_name}</td>
+                    <td>${indicator.indicator_text.substring(0, 100)}${indicator.indicator_text.length > 100 ? '...' : ''}</td>
+                    <td>${indicator.type}</td>
+                    <td>
+                        <span class="badge ${indicator.is_active ? 'badge-active' : 'badge-inactive'}">
+                            ${indicator.is_active ? 'Active' : 'Inactive'}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="actions">
+                            <button class="btn btn-primary btn-small" onclick="editIndicator(${indicator.id})">Edit</button>
+                            <button class="btn btn-danger btn-small" onclick="deleteIndicator(${indicator.id})">
+                                ${indicator.is_active ? 'Deactivate' : 'Activate'}
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Render pagination
+        function renderPagination(paginationData) {
+            const container = document.getElementById('pagination-container');
+            const totalPages = paginationData.last_page;
+
+            if (totalPages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+
+            let buttons = [];
+            for (let i = 1; i <= totalPages; i++) {
+                buttons.push(`
+                    <button class="page-btn ${i === currentPage ? 'active' : ''}" 
+                            onclick="loadIndicators(${i})">
+                        ${i}
+                    </button>
+                `);
+            }
+
+            container.innerHTML = buttons.join('');
+        }
+
+        // Handle search
+        function handleSearch() {
+            currentSearch = document.getElementById('search-input').value;
+            setTimeout(() => {
+                loadIndicators(1);
+            }, 500);
+        }
+
+        // Handle filter
+        function handleFilter() {
+            currentStatus = document.getElementById('status-filter').value;
+            loadIndicators(1);
+        }
+
+        // Open create modal
+        function openCreateModal() {
+            document.getElementById('modal-title').textContent = 'Add New Indicator';
+            document.getElementById('indicator-form').reset();
+            document.getElementById('indicator-id').value = '';
+            document.getElementById('is-active').checked = true;
+            document.getElementById('indicator-modal').classList.add('active');
+        }
+
+        // Edit indicator
+        async function editIndicator(id) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/admin/indicators/${id}`, {
+                    headers: {
+                        'Authorization': `Bearer ${AUTH_TOKEN}`,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    const indicator = result.data;
+                    document.getElementById('modal-title').textContent = 'Edit Indicator';
+                    document.getElementById('indicator-id').value = indicator.id;
+                    document.getElementById('group-name').value = indicator.group_name;
+                    document.getElementById('indicator-text').value = indicator.indicator_text;
+                    document.getElementById('indicator-type').value = indicator.type;
+                    document.getElementById('scale-values').value = indicator.scale_values ? indicator.scale_values.join(',') : '';
+                    document.getElementById('scale-labels').value = indicator.scale_labels ? indicator.scale_labels.join(',') : '';
+                    document.getElementById('display-order').value = indicator.display_order;
+                    document.getElementById('is-active').checked = indicator.is_active;
+                    
+                    handleTypeChange();
+                    document.getElementById('indicator-modal').classList.add('active');
+                } else {
+                    showAlert('Failed to load indicator', 'error');
+                }
+            } catch (error) {
+                console.error('Error loading indicator:', error);
+                showAlert('Error loading indicator: ' + error.message, 'error');
+            }
+        }
+
+        // Handle form submit
+        async function handleSubmit(event) {
+            event.preventDefault();
+
+            const id = document.getElementById('indicator-id').value;
+            const data = {
+                group_name: document.getElementById('group-name').value,
+                indicator_text: document.getElementById('indicator-text').value,
+                type: document.getElementById('indicator-type').value,
+                scale_values: document.getElementById('scale-values').value.split(',').map(v => parseInt(v.trim())),
+                scale_labels: document.getElementById('scale-labels').value.split(',').map(v => v.trim()),
+                display_order: parseInt(document.getElementById('display-order').value),
+                is_active: document.getElementById('is-active').checked
+            };
+
+            try {
+                const url = id 
+                    ? `${API_BASE_URL}/admin/indicators/${id}` 
+                    : `${API_BASE_URL}/admin/indicators`;
+                
+                const method = id ? 'PUT' : 'POST';
+
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Authorization': `Bearer ${AUTH_TOKEN}`,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showAlert(result.message, 'success');
+                    closeModal();
+                    loadIndicators(currentPage);
+                } else {
+                    showAlert('Failed to save indicator: ' + (result.message || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                console.error('Error saving indicator:', error);
+                showAlert('Error saving indicator: ' + error.message, 'error');
+            }
+        }
+
+        // Delete (deactivate) indicator
+        async function deleteIndicator(id) {
+            if (!confirm('Are you sure you want to deactivate/activate this indicator?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/admin/indicators/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${AUTH_TOKEN}`,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showAlert(result.message, 'success');
+                    loadIndicators(currentPage);
+                } else {
+                    showAlert('Failed to update indicator', 'error');
+                }
+            } catch (error) {
+                console.error('Error updating indicator:', error);
+                showAlert('Error updating indicator: ' + error.message, 'error');
+            }
+        }
+
+        // Handle type change
+        function handleTypeChange() {
+            const type = document.getElementById('indicator-type').value;
+            const scaleValuesGroup = document.getElementById('scale-values-group');
+            const scaleLabelsGroup = document.getElementById('scale-labels-group');
+
+            if (type === 'scale') {
+                scaleValuesGroup.style.display = 'block';
+                scaleLabelsGroup.style.display = 'block';
+            } else {
+                scaleValuesGroup.style.display = 'none';
+                scaleLabelsGroup.style.display = 'none';
+            }
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('indicator-modal').classList.remove('active');
+        }
+
+        // Show alert
+        function showAlert(message, type) {
+            const container = document.getElementById('alert-container');
+            const alertClass = type === 'success' ? 'alert-success' : 'alert-error';
+            
+            container.innerHTML = `<div class="alert ${alertClass}">${message}</div>`;
+
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

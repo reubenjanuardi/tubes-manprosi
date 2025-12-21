@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management - PEMDILID Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link href="/client/admin/admin-styles.css" rel="stylesheet">
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h4>PEMDILID Admin</h4>
+            <small style="color: rgba(255,255,255,0.6);">Phase 2 Dashboard</small>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="/client/admin/dashboard.html"><i class='bx bxs-dashboard'></i> Dashboard</a></li>
+            <li><a href="/client/admin/users.html" class="active"><i class='bx bxs-user'></i> User Management</a></li>
+            <li><a href="/client/admin/assessments.html"><i class='bx bxs-file-doc'></i> Assessments</a></li>
+            <li><a href="/client/admin/indicators.html"><i class='bx bxs-bullseye'></i> Indicators</a></li>
+            <li><a href="/client/admin/responses.html"><i class='bx bxs-message-square-detail'></i> Responses</a></li>
+            <li><a href="/client/admin/reports.html"><i class='bx bxs-report'></i> Reports</a></li>
+            <li><a href="/client/admin/activity-logs.html"><i class='bx bxs-time'></i> Activity Logs</a></li>
+            <li><a href="/client/admin/settings.html"><i class='bx bxs-cog'></i> Settings</a></li>
+        </ul>
+    </aside>
+
+    <div class="main-content">
+        <nav class="top-navbar">
+            <div><h5 style="margin: 0; font-weight: 600;">User Management</h5></div>
+            <div>
+                <button class="btn btn-sm btn-outline-danger" onclick="logout()">
+                    <i class='bx bx-log-out'></i> Logout
+                </button>
+            </div>
+        </nav>
+
+        <div class="content-area">
+            <div class="card">
+                <div class="card-body">
+                    <div class="text-center" style="padding: 40px 20px;">
+                        <i class='bx bxs-user' style="font-size: 64px; color: #cbd5e1; margin-bottom: 20px; display: inline-block;"></i>
+                        <h3 style="margin: 0 0 16px 0; font-size: 24px;">User Management</h3>
+                        <p class="text-muted" style="margin: 0; font-size: 15px;">Coming in Phase 2B - User CRUD functionality</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('admin_token');
+                sessionStorage.removeItem('admin_token');
+                window.location.href = '/client/admin/login.html?logout=true';
+            }
+        }
+        if (!localStorage.getItem('admin_token') && !sessionStorage.getItem('admin_token')) {
+            window.location.href = '/client/admin/login.html';
+        }
+    </script>
+</body>
+</html>

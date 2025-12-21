@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PEMDI.ID - Transformasi Digital untuk Indonesia Maju</title>
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+</head>
+
+<body>
+    <!-- Header Navigation -->
+    <header class="header" id="header">
+        <nav class="nav container">
+            <div class="nav__brand">
+                <div class="nav__logo">
+                    <div class="logo-shield">
+                        <span>PEMDI</span>
+                    </div>
+                    <span class="logo-text">.ID</span>
+                </div>
+            </div>
+            <div class="nav__menu" id="nav-menu">
+                <ul class="nav__list">
+                    <li class="nav__item"><a href="#home" class="nav__link">Beranda</a></li>
+                    <li class="nav__item"><a href="#about" class="nav__link">Tentang</a></li>
+                    <li class="nav__item"><a href="#services" class="nav__link">Layanan</a></li>
+                    <li class="nav__item"><a href="#welcome-section" class="nav__link">Assessment</a></li>
+                    <li class="nav__item"><a href="#methodology" class="nav__link">Metodologi</a></li>
+                    <li class="nav__item"><a href="#contact" class="nav__link">Kontak</a></li>
+                </ul>
+            </div>
+            <div class="nav__toggle" id="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="hero__container container">
+            <div class="hero__content">
+                <div class="hero__badge">
+                    <span>Partnership 4nesia × Telkom University COE Smart City</span>
+                </div>
+                <h1 class="hero__title">
+                    Transformasi Digital<br>
+                    untuk <span class="text-gradient">Indonesia Maju</span>
+                </h1>
+                <p class="hero__description">
+                    Platform konsultasi dan pendampingan SPBE & Pemerintahan Digital yang komprehensif. 
+                    Menggabungkan expertise praktisi industri dengan riset akademik terdepan.
+                </p>
+                <div class="hero__stats">
+                    <div class="stat-item">
+                        <span class="stat-number" data-target="50">0</span>
+                        <span class="stat-label">Klien Terlayani</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" data-target="75">0</span>
+                        <span class="stat-label">Proyek Selesai</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" data-target="95">0</span>
+                        <span class="stat-label">% Kepuasan</span>
+                    </div>
+                </div>
+                <div class="hero__actions">
+                    <a href="#welcome-section" class="btn btn--primary">Mulai Assessment</a>
+                    <a href="#contact" class="btn btn--outline">Konsultasi Gratis</a>
+                </div>
+            </div>
+            <div class="hero__visual">
+                <div class="hero__globe"></div>
+                <div class="floating-elements">
+                    <div class="float-element" style="--delay: 0s">SPBE</div>
+                    <div class="float-element" style="--delay: 1s">Digital Gov</div>
+                    <div class="float-element" style="--delay: 2s">Smart City</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="about" id="about">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Kolaborasi Strategis</h2>
+                <p class="section-subtitle">Menggabungkan kekuatan praktisi industri dengan riset akademik</p>
+            </div>
+            <div class="about__content">
+                <div class="partnership-cards">
+                    <div class="partner-card">
+                        <div class="partner-logo">4nesia</div>
+                        <h3>PT 4nesia Digital Solution</h3>
+                        <p>Praktisi berpengalaman dalam implementasi transformasi digital pemerintahan dengan track record lebih dari 50 instansi.</p>
+                        <ul class="partner-strengths">
+                            <li>Expertise SPBE & Digital Government</li>
+                            <li>Metodologi teruji di lapangan</li>
+                            <li>Network luas sektor pemerintahan</li>
+                        </ul>
+                    </div>
+                    <div class="collaboration-bridge">
+                        <div class="bridge-icon">⟷</div>
+                        <span>Kolaborasi Strategis</span>
+                    </div>
+                    <div class="partner-card">
+                        <div class="partner-logo">Tel-U</div>
+                        <h3>Telkom University COE Smart City</h3>
+                        <p>Center of Excellence yang berfokus pada riset dan pengembangan solusi smart city dan digital government.</p>
+                        <ul class="partner-strengths">
+                            <li>Riset & Development terdepan</li>
+                            <li>Fasilitas laboratorium modern</li>
+                            <li>Continuous innovation</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section class="services" id="services">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Layanan Kami</h2>
+                <p class="section-subtitle">Solusi komprehensif untuk transformasi digital pemerintahan</p>
+            </div>
+            <div class="services__grid">
+                <div class="service-card">
+                    <div class="service-icon">
+                        <span>📊</span>
+                    </div>
+                    <h3 class="service-title">Konsultasi SPBE</h3>
+                    <p class="service-description">Konsultasi komprehensif untuk implementasi Sistem Pemerintahan Berbasis Elektronik sesuai regulasi terbaru</p>
+                    <div class="service-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Indikator:</span>
+                            <span class="detail-value">47 Indikator Evaluasi</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Durasi:</span>
+                            <span class="detail-value">8-16 minggu</span>
+                        </div>
+                    </div>
+                    <ul class="service-features">
+                        <li>Assessment & Gap Analysis</li>
+                        <li>Arsitektur SPBE</li>
+                        <li>Roadmap Implementation</li>
+                        <li>Capacity Building</li>
+                    </ul>
+                </div>
+
+                <div class="service-card">
+                    <div class="service-icon">
+                        <span>🏛️</span>
+                    </div>
+                    <h3 class="service-title">Pendampingan Pemerintahan Digital</h3>
+                    <p class="service-description">Transformasi menuju framework Pemerintahan Digital 2025-2029 dengan pendekatan people-centered</p>
+                    <div class="service-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Indikator:</span>
+                            <span class="detail-value">32 Indikator Evaluasi</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Durasi:</span>
+                            <span class="detail-value">12-20 minggu</span>
+                        </div>
+                    </div>
+                    <ul class="service-features">
+                        <li>Digital Leadership</li>
+                        <li>Digital Infrastructure</li>
+                        <li>Digital Services</li>
+                        <li>Digital Governance</li>
+                    </ul>
+                </div>
+
+                <div class="service-card">
+                    <div class="service-icon">
+                        <span>🔍</span>
+                    </div>
+                    <h3 class="service-title">Assessment & Evaluasi</h3>
+                    <p class="service-description">Tools dan metodologi evaluasi tingkat kematangan digital government yang akurat dan komprehensif</p>
+                    <div class="service-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Coverage:</span>
+                            <span class="detail-value">SPBE & Pemerintahan Digital</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Durasi:</span>
+                            <span class="detail-value">2-4 minggu</span>
+                        </div>
+                    </div>
+                    <ul class="service-features">
+                        <li>Self-Assessment Tools</li>
+                        <li>Benchmark Analysis</li>
+                        <li>Maturity Scoring</li>
+                        <li>Improvement Roadmap</li>
+                    </ul>
+                </div>
+
+                <div class="service-card">
+                    <div class="service-icon">
+                        <span>🎓</span>
+                    </div>
+                    <h3 class="service-title">Pelatihan & Sertifikasi</h3>
+                    <p class="service-description">Program capacity building untuk meningkatkan kompetensi SDM dalam transformasi digital pemerintahan</p>
+                    <div class="service-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Framework:</span>
+                            <span class="detail-value">Competency Framework</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Durasi:</span>
+                            <span class="detail-value">1-8 minggu</span>
+                        </div>
+                    </div>
+                    <ul class="service-features">
+                        <li>Digital Leadership Training</li>
+                        <li>Technical Skills</li>
+                        <li>Change Management</li>
+                        <li>Professional Certification</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Assessment Section -->
+    <section id="welcome-section" class="welcome-section" data-section="assessment">
+        <button class="btn btn--primary btn--lg" onclick="startAssessment()">
+            Mulai Assessment Digital Government
+        </button>
+                
+
+            <!-- Assessment Type Selection -->
+            <div class="assessment-types">
+                <h3>Pilih Jenis Assessment</h3>
+                <div class="assessment-cards">
+                    <div class="assessment-card" onclick="selectAssessmentType('pemdi')">
+                        <div class="assessment-card__header">
+                            <h4>Pemerintah Digital 2025-2029</h4>
+                            <span class="status status--success">Recommended</span>
+                        </div>
+                        <div class="assessment-card__content">
+                            <p>Framework evaluasi terbaru dengan 32 indikator sesuai roadmap transformasi digital pemerintahan Indonesia</p>
+                            <div class="assessment-features">
+                                <div class="feature">✓ 4 Domain Utama</div>
+                                <div class="feature">✓ 32 Indikator Komprehensif</div>
+                                <div class="feature">✓ Sesuai Renstra 2025-2029</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="assessment-card" onclick="selectAssessmentType('spbe')">
+                        <div class="assessment-card__header">
+                            <h4>SPBE Assessment</h4>
+                            <span class="status status--info">Legacy</span>
+                        </div>
+                        <div class="assessment-card__content">
+                            <p>Framework SPBE tradisional dengan 47 indikator untuk evaluasi sistem pemerintahan berbasis elektronik</p>
+                            <div class="assessment-features">
+                                <div class="feature">✓ 47 Indikator SPBE</div>
+                                <div class="feature">✓ Framework Established</div>
+                                <div class="feature">✓ Kompatibilitas Legacy</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Organization Info Section -->
+    <section id="org-info-section" class="section section--hidden">
+        <div class="container">
+            <div class="section-header">
+                <h2>Informasi Organisasi</h2>
+                <p>Masukkan informasi dasar organisasi untuk memulai assessment</p>
+            </div>
+            <form id="org-form" class="org-form">
+                @csrf
+                <div class="form-grid">
+                    <div class="form-group" id="org-name-group">
+                        <label class="form-label" for="org-name">Nama Instansi/Organisasi *</label>
+                        <input type="text" id="org-name" name="org_name" class="form-control" required>
+                        <select id="org-name-select" name="org_name_select" class="form-control" style="display: none;" required>
+                            <option value="">Pilih Nama Instansi</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="org-type">Jenis Instansi *</label>
+                        <select id="org-type" name="org_type" class="form-control" required>
+                            <option value="">Pilih Jenis Instansi</option>
+                            <option value="kementerian">Kementerian</option>
+                            <option value="lembaga">Lembaga Pemerintah Non-Kementerian</option>
+                            <option value="provinsi">Pemerintah Provinsi</option>
+                            <option value="kabkota">Pemerintah Kabupaten/Kota</option>
+                            <option value="bumn">BUMN</option>
+                            <option value="bumd">BUMD</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="assessor-name">Nama Assessor *</label>
+                        <input type="text" id="assessor-name" name="assessor_name" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="assessor-position">Jabatan Assessor *</label>
+                        <input type="text" id="assessor-position" name="assessor_position" class="form-control" required>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn--secondary" onclick="goToWelcome()">Kembali</button>
+                    <button type="submit" class="btn btn--primary">Lanjut ke Assessment</button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <!-- Assessment Section -->
+    <section id="assessment-section" class="section section--hidden">
+        <div class="container">
+            <!-- Progress Header -->
+            <div class="assessment-header">
+                <div class="progress-info">
+                    <h2 id="current-domain-title">Assessment Digital Government</h2>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                    <div class="progress-text">
+                        <span id="progress-current">0</span> dari <span id="progress-total">32</span> indikator
+                    </div>
+                </div>
+                <div class="assessment-nav">
+                    <button class="btn btn--secondary btn--sm" onclick="saveProgress()">Simpan Progress</button>
+                    <button class="btn btn--outline btn--sm" onclick="showDashboard()">Lihat Dashboard</button>
+                </div>
+            </div>
+
+            <!-- Domain Navigation -->
+            <div class="domain-nav">
+                <div id="domain-tabs" class="domain-tabs"></div>
+            </div>
+
+            <!-- Assessment Content -->
+            <div class="assessment-content">
+                <div id="assessment-form" class="assessment-form"></div>
+            </div>
+
+            <!-- Assessment Actions -->
+            <div class="assessment-actions">
+                <button id="prev-btn" class="btn btn--secondary" onclick="navigateAssessment('prev')" disabled>
+                    ← Sebelumnya
+                </button>
+                <button id="next-btn" class="btn btn--primary" onclick="navigateAssessment('next')">
+                    Selanjutnya →
+                </button>
+                <button id="submit-btn" type="button" class="btn btn--primary btn--lg section--hidden" onclick="submitAssessment(); return false;">
+                    Selesaikan Assessment
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Results Section -->
+    <section id="results-section" class="section section--hidden">
+        <div class="container">
+            <div class="results-header">
+                <h2>Hasil Assessment Digital Government</h2>
+                <div class="results-summary">
+                    <div class="summary-card">
+                        <div class="summary-value" id="overall-score">0.0</div>
+                        <div class="summary-label">Skor Overall</div>
+                        <div class="summary-level" id="overall-level">Initial</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-value" id="completed-indicators">0</div>
+                        <div class="summary-label">Indikator Selesai</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-value" id="assessment-date">-</div>
+                        <div class="summary-label">Tanggal Assessment</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="charts-grid">
+                <div class="chart-container">
+                    <h3>Maturity Radar Chart</h3>
+                    <canvas id="radar-chart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3>Domain Scores</h3>
+                    <canvas id="domain-chart"></canvas>
+                </div>
+            </div>
+
+            <!-- Domain Details -->
+            <div id="domain-details" class="domain-details"></div>
+
+            <!-- Actions - Export & New Assessment -->
+            <div class="results-actions">
+                <!-- Export buttons will be dynamically created by displayExportButtons() -->
+                <div id="export-buttons-container"></div>
+                <div class="new-assessment-container">
+                    <button class="btn btn--primary" onclick="startNewAssessment()">Assessment Baru</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Methodology Section -->
+    <section class="methodology" id="methodology">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Metodologi 4 Fase</h2>
+                <p class="section-subtitle">Pendekatan sistematis untuk transformasi digital yang berkelanjutan</p>
+            </div>
+            <div class="methodology__timeline">
+                <div class="timeline-item">
+                    <div class="timeline-marker">1</div>
+                    <div class="timeline-content">
+                        <div class="timeline-duration">4 minggu</div>
+                        <h3>Assessment & Analysis</h3>
+                        <ul>
+                            <li>Current State Assessment</li>
+                            <li>Gap Analysis</li>
+                            <li>Stakeholder Mapping</li>
+                            <li>Initial Recommendations</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-marker">2</div>
+                    <div class="timeline-content">
+                        <div class="timeline-duration">6 minggu</div>
+                        <h3>Strategic Planning</h3>
+                        <ul>
+                            <li>Architecture Design</li>
+                            <li>Roadmap Development</li>
+                            <li>Risk Management Plan</li>
+                            <li>Resource Planning</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-marker">3</div>
+                    <div class="timeline-content">
+                        <div class="timeline-duration">16 minggu</div>
+                        <h3>Implementation Support</h3>
+                        <ul>
+                            <li>Pilot Project Implementation</li>
+                            <li>Change Management</li>
+                            <li>Training & Capacity Building</li>
+                            <li>Performance Monitoring</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-marker">4</div>
+                    <div class="timeline-content">
+                        <div class="timeline-duration">8 minggu</div>
+                        <h3>Evaluation & Optimization</h3>
+                        <ul>
+                            <li>Impact Assessment</li>
+                            <li>Performance Review</li>
+                            <li>Optimization Recommendations</li>
+                            <li>Sustainability Planning</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="contact" id="contact">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Hubungi Kami</h2>
+                <p class="section-subtitle">Konsultasi gratis untuk kebutuhan transformasi digital instansi Anda</p>
+            </div>
+            <div class="contact__content">
+                <div class="contact__info">
+                    <div class="contact-item">
+                        <div class="contact-icon">📍</div>
+                        <div class="contact-details">
+                            <h4>Alamat</h4>
+                            <p>Jalan Adhyaksa III No 26 Sukapura Dayeuh Kolot<br>Kabupaten Bandung, West Java 40257</p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon">📞</div>
+                        <div class="contact-details">
+                            <h4>Telepon</h4>
+                            <p>+62 22 1234 5678</p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon">✉️</div>
+                        <div class="contact-details">
+                            <h4>Email</h4>
+                            <p>info@pemdi.id</p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon">💬</div>
+                        <div class="contact-details">
+                            <h4>WhatsApp</h4>
+                            <p>+62 812 3456 7890</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="contact__form">
+                    <form class="contact-form" id="contact-form" action="{{ route('contact.submit') }}" method="POST">
+                        @csrf
+                        <div class="form-group">
+                            <label class="form-label">Nama Instansi</label>
+                            <input type="text" class="form-control" name="institution" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Nama Lengkap</label>
+                            <input type="text" class="form-control" name="fullname" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Layanan yang Diminati</label>
+                            <select class="form-control" name="service" required>
+                                <option value="">Pilih layanan</option>
+                                <option value="spbe">Konsultasi SPBE</option>
+                                <option value="digital-gov">Pendampingan Pemerintahan Digital</option>
+                                <option value="assessment">Assessment & Evaluasi</option>
+                                <option value="training">Pelatihan & Sertifikasi</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Pesan</label>
+                            <textarea class="form-control" name="message" rows="4" placeholder="Ceritakan kebutuhan instansi Anda..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn--primary btn--full-width">
+                            Kirim Pesan
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer__content">
+                <div class="footer__brand">
+                    <div class="nav__logo">
+                        <div class="logo-shield">
+                            <span>PEMDI</span>
+                        </div>
+                        <span class="logo-text">.ID</span>
+                    </div>
+                    <p>Transformasi Digital untuk Indonesia Maju</p>
+                    <p class="partnership-text">Partnership: 4nesia × Telkom University COE Smart City</p>
+                </div>
+                <div class="footer__links">
+                    <div class="footer-column">
+                        <h4>Layanan</h4>
+                        <ul>
+                            <li><a href="#services">Konsultasi SPBE</a></li>
+                            <li><a href="#services">Pemerintahan Digital</a></li>
+                            <li><a href="#assessment">Assessment Tools</a></li>
+                            <li><a href="#services">Training</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h4>Perusahaan</h4>
+                        <ul>
+                            <li><a href="#about">Tentang Kami</a></li>
+                            <li><a href="#methodology">Metodologi</a></li>
+                            <li><a href="#contact">Kontak</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="footer__bottom">
+                <p>&copy; 2025 PEMDI.ID. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Assessment Modal -->
+    <div id="assessment-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Assessment</h3>
+                <span class="modal-close" onclick="closeAssessmentModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="assessment-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                    <span class="progress-text" id="progress-text">0 / 0</span>
+                </div>
+                <div id="assessment-content">
+                    <!-- Assessment questions will be loaded here -->
+                </div>
+                <div class="assessment-actions">
+                    <button class="btn btn--outline" id="prev-btn" onclick="previousQuestion()" disabled>Sebelumnya</button>
+                    <button class="btn btn--primary" id="next-btn" onclick="nextQuestion()">Selanjutnya</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load Chart.js before app.js so `new Chart(...)` is available -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <!-- Laravel Helper (CSRF, Form Submission) -->
+    <script src="{{ asset('js/laravel-helper.js') }}"></script>
+    
+    <!-- Indonesia Regions Data -->
+    <script src="{{ asset('js/indonesia-regions.js') }}"></script>
+    
+    <!-- Indonesia Ministries Data -->
+    <script src="{{ asset('js/indonesia-ministries.js') }}"></script>
+    
+    <!-- API Client -->
+    <script src="{{ asset('js/api.js') }}"></script>
+    
+    <!-- Dynamic Indicator System (Phase 1) -->
+    <script src="{{ asset('js/indicatorService.js') }}"></script>
+    <script src="{{ asset('js/indicatorIntegration.js') }}"></script>
+    
+    <!-- Main Application -->
+    <script src="{{ asset('js/app.js') }}"></script>
+</body>
+</html>

@@ -8,8 +8,8 @@ use App\Helpers\IndicatorMapper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Barryvdh\DomPDF\Facade\Pdf;
-use Maatwebsite\Excel\Facades\Excel;
+use App\Services\SpbePdfGenerator;
+use App\Services\SpbeNarrativeGenerator;
 
 class AssessmentController extends Controller
 {
@@ -163,72 +163,165 @@ class AssessmentController extends Controller
      */
     public function exportPdf(string $id)
     {
+        // Redirect to the SPBE PDF export method for consistent output
+        return $this->exportSpbePdf($id);
+    }
+
+    /**
+     * Export assessment as PDF with SPBE Government Style using TCPDF
+     * 
+     * @param string $id Assessment ID
+     * @return \Illuminate\Http\Response
+     */
+    public function exportSpbePdf(string $id)
+    {
         try {
+            // Load assessment with related domains/responses
             $assessment = Assessment::with('responses')->findOrFail($id);
 
-            // Prepare data for PDF view
-            $data = [
-                'assessment' => $assessment,
-                'indicators' => IndicatorMapper::getIndicators(),
+            // Get indicators
+            $indicators = IndicatorMapper::getIndicators();
+
+            // Group responses by domain and calculate domain scores
+            $domainScores = [];
+            $indikatorNilai = [];
+            
+            foreach ($assessment->responses as $response) {
+                $indicatorId = $response->indicator_id;
+                $indicatorName = $indicators[$indicatorId] ?? 'Indikator ' . $indicatorId;
+                
+                // Build indicator nilai array
+                $indikatorNilai[] = [
+                    'nama' => $indicatorName,
+                    'nilai' => $response->score,
+                ];
+                
+                // Extract domain from indicator
+                $domainName = $this->extractDomainFromIndicator($indicatorName, $indicatorId);
+                
+                if (!isset($domainScores[$domainName])) {
+                    $domainScores[$domainName] = [
+                        'name' => $domainName,
+                        'scores' => [],
+                    ];
+                }
+                $domainScores[$domainName]['scores'][] = $response->score;
+            }
+
+            // Calculate average score per domain and build indeksSpbe
+            $indeksSpbe = [];
+            foreach ($domainScores as $domainName => $data) {
+                $avgScore = count($data['scores']) > 0 
+                    ? array_sum($data['scores']) / count($data['scores']) 
+                    : 0;
+                $indeksSpbe[] = [
+                    'domain' => $data['name'],
+                    'nilai' => $avgScore,
+                ];
+            }
+
+            // If no domains found, create default domains from assessment
+            if (empty($indeksSpbe)) {
+                $indeksSpbe = [
+                    ['domain' => 'Domain Kebijakan SPBE', 'nilai' => $assessment->total_score],
+                    ['domain' => 'Domain Tata Kelola SPBE', 'nilai' => $assessment->total_score],
+                    ['domain' => 'Domain Manajemen SPBE', 'nilai' => $assessment->total_score],
+                    ['domain' => 'Domain Layanan SPBE', 'nilai' => $assessment->total_score],
+                ];
+            }
+
+            // Build full institution name
+            $fullInstitutionName = trim(($assessment->org_type ?? '') . ' ' . ($assessment->org_name ?? ''));
+            if (empty($fullInstitutionName)) {
+                $fullInstitutionName = $assessment->org_name ?? 'Instansi';
+            }
+
+            // Prepare base data for narrative generator
+            $baseData = [
+                'institution' => $fullInstitutionName,
+                'year' => $assessment->assessment_date 
+                    ? $assessment->assessment_date->format('Y') 
+                    : date('Y'),
+                'indeksSpbe' => $indeksSpbe,
             ];
 
-            // Generate PDF
-            $pdf = Pdf::loadView('assessment.pdf-report', $data);
-            $filename = "Assessment_{$assessment->org_name}_{$assessment->id}.pdf";
+            // Generate dynamic narrative content based on actual data
+            $narrativeGenerator = new SpbeNarrativeGenerator($baseData);
+            $narrativeContent = $narrativeGenerator->generateAllContent();
 
-            return $pdf->download($filename);
+            // Prepare dasar hukum (static content)
+            $dasarHukum = [
+                'Peraturan Presiden Nomor 95 Tahun 2018 tentang Sistem Pemerintahan Berbasis Elektronik',
+                'Peraturan Menteri PANRB Nomor 59 Tahun 2020 tentang Pemantauan dan Evaluasi SPBE',
+                'Peraturan Menteri PANRB Nomor 5 Tahun 2018 tentang Pedoman Evaluasi Sistem Pemerintahan Berbasis Elektronik',
+                'Keputusan Menteri PANRB tentang Hasil Evaluasi SPBE',
+            ];
+
+            // Generate academic project evaluation content
+            $academicEvaluation = $narrativeGenerator->generateAcademicEvaluation();
+
+            // Prepare data for PDF generation
+            $data = [
+                'institution' => $fullInstitutionName,
+                'year' => $baseData['year'],
+                'kataPengantar' => $narrativeContent['kataPengantar'],
+                'ringkasan' => $narrativeContent['ringkasan'],
+                'dasarHukum' => $dasarHukum,
+                'metodologi' => $narrativeContent['metodologi'],
+                'tingkatKematangan' => $narrativeContent['tingkatKematangan'],
+                'indeksSpbe' => $indeksSpbe,
+                'evaluasi' => $narrativeContent['evaluasi'],
+                'rekomendasi' => $narrativeContent['rekomendasi'],
+                'indikatorNilai' => $indikatorNilai,
+                'evaluasiProyek' => $academicEvaluation,
+            ];
+
+            // Generate PDF using TCPDF
+            $pdfGenerator = new SpbePdfGenerator($fullInstitutionName, $data['year']);
+            $pdfContent = $pdfGenerator->generateReport($data);
+
+            // Generate filename based on institution type and name
+            $institutionType = $assessment->org_type ?? '';
+            $institutionName = $assessment->org_name ?? '';
+            $fullName = trim($institutionType . ' ' . $institutionName);
+            $cleanName = preg_replace('/[^A-Za-z0-9\s\-]/', '', $fullName);
+            $cleanName = preg_replace('/\s+/', '_', trim($cleanName));
+            $filename = "Laporan_Hasil_Evaluasi_-_{$cleanName}.pdf";
+
+            // Return PDF as download
+            return response($pdfContent)
+                ->header('Content-Type', 'application/pdf')
+                ->header('Content-Disposition', 'attachment; filename="' . $filename . '"')
+                ->header('Content-Length', strlen($pdfContent));
+                
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to export PDF',
+                'message' => 'Failed to export SPBE PDF',
                 'error' => $e->getMessage(),
             ], 500);
         }
     }
 
     /**
-     * Export assessment as Excel (CSV format)
+     * Extract domain name from indicator
+     * 
+     * @param string $indicatorName
+     * @param int $indicatorId
+     * @return string
      */
-    public function exportExcel(string $id)
+    private function extractDomainFromIndicator(string $indicatorName, int $indicatorId): string
     {
-        try {
-            $assessment = Assessment::with('responses')->findOrFail($id);
-
-            // Create Excel export object
-            $export = new \App\Exports\AssessmentExport($assessment);
-            $data = $export->toArray();
-            
-            // Generate filename
-            $filename = "Assessment_Summary_{$assessment->id}.csv";
-            
-            // Set headers for CSV download
-            $headers = [
-                'Content-Type' => 'text/csv; charset=UTF-8',
-                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
-                'Cache-Control' => 'max-age=0',
-            ];
-            
-            // Create CSV response
-            $callback = function() use ($data) {
-                $file = fopen('php://output', 'w');
-                
-                // Add BOM for Excel UTF-8 support
-                fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
-                
-                foreach ($data as $row) {
-                    fputcsv($file, $row);
-                }
-                
-                fclose($file);
-            };
-            
-            return response()->stream($callback, 200, $headers);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to export Excel',
-                'error' => $e->getMessage(),
-            ], 500);
+        // Map indicators to domains based on ID ranges
+        if ($indicatorId >= 1 && $indicatorId <= 8) {
+            return 'Domain Kebijakan SPBE';
+        } elseif ($indicatorId >= 9 && $indicatorId <= 16) {
+            return 'Domain Tata Kelola SPBE';
+        } elseif ($indicatorId >= 17 && $indicatorId <= 24) {
+            return 'Domain Manajemen SPBE';
+        } else {
+            return 'Domain Layanan SPBE';
         }
     }
+
 }
